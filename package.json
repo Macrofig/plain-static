@@ -9,7 +9,8 @@
   },
   "scripts": {
     "lint": "xo",
-    "test": "npm run lint && mocha"
+    "test": "npm run lint && mocha",
+    "publish": "npm test"
   },
   "author": "Juan Orozco <hi@juanorozco.com> (http://juanorozco.com)",
   "license": "ISC",
