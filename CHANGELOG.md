@@ -1,15 +1,17 @@
 # Changelog
 
-## [Unreleased]
+## [1.2.0]
 
 ### Added
 
 - Added `prepublish` script that runs lint and test tools before publishing to npm
 - Added less example to demo.
+- Added folder structure example to demo
 
 ### Changed
 
 - Improved notes in readme file.
+- Tool now respects source folder structure
 
 ## [1.1.0] - 2015-12-16
 

@@ -32,16 +32,20 @@ copy.markdown = markdown = function (opts, filePath) {
 
 copy.getData = function (opts) {
   var log = debug('copy:getData');
-  log('Pattern:', opts.appRoot + '/' + opts.src + '/**/*.json');
+  var basePath = opts.appRoot + '/' + opts.src;
+  log('Pattern:', basePath + '/**/*.json');
   var data = {};
   // Get JSON
-  glob(opts.appRoot + '/' + opts.src + '/**/*.json', function (er, files) {
+  glob(basePath + '/**/*.json', function (er, files) {
     log('total json files found:', files.length);
     for (var i = 0; i < files.length; i++) {
       var file = files[i];
       var fileName = path.basename(file, '.json');
-      data[fileName] = JSON.parse(read.sync(file, 'utf8'));
-      var hasMD = checkDeepProperty(data[fileName], 'markdown');
+      var filePath = path.dirname(file);
+      filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
+
+      data[filePath + fileName] = JSON.parse(read.sync(file, 'utf8'));
+      var hasMD = checkDeepProperty(data[filePath + fileName], 'markdown');
       log(hasMD);
       if (hasMD && hasMD.length && hasMD.length > 0) {
         log('JSON file has ' + hasMD.length + ' markdown items.');
@@ -58,7 +62,7 @@ copy.getData = function (opts) {
   });
 
   // Build content
-  glob(opts.appRoot + '/' + opts.src + '/**/*.md', function (er, files) {
+  glob(basePath + '/**/*.md', function (er, files) {
     log('total md files found:', files.length);
     for (var i = 0; i < files.length; i++) {
       var file = files[i];
@@ -74,6 +78,7 @@ copy.getData = function (opts) {
 // Build templates
 copy.templates = function (opts, data) {
   var log = debug('copy:templates');
+  var basePath = opts.appRoot + '/' + opts.src;
   var destPath;
   var file;
   var fileName;
@@ -85,21 +90,25 @@ copy.templates = function (opts, data) {
       log('error saving ' + fileName);
     }
   };
-  glob(opts.appRoot + '/' + opts.src + '/**/*.mustache', function (er, files) {
+  glob(basePath + '/**/*.mustache', function (er, files) {
     log('total mustache templates found:', files.length);
     for (var i = 0; i < files.length; i++) {
       destPath = '';
       file = files[i] || '';
       fileName = path.basename(file, '.mustache') || '';
+      var filePath = path.dirname(file);
+      filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
+
       log('Processing template:', fileName);
+      log('template path:', filePath);
       // Get files
       var template = read.sync(file, 'utf8');
       // Build
-      var indexFile = Mustache.render(template, data[fileName]);
+      var indexFile = Mustache.render(template, data[filePath + fileName]);
       if (fileName === 'index') {
-        destPath = opts.appRoot + '/' + opts.dest + '/' + fileName + '.html';
+        destPath = opts.appRoot + '/' + opts.dest + filePath + '/' + fileName + '.html';
       } else {
-        destPath = opts.appRoot + '/' + opts.dest + '/' + fileName + '/index.html';
+        destPath = opts.appRoot + '/' + opts.dest + filePath + '/' + fileName + '/index.html';
       }
       log('Template destinaton:', destPath);
 
@@ -117,10 +126,15 @@ copy.templates = function (opts, data) {
 // Build styles
 copy.styles = function (opts) {
   var log = debug('copy:styles');
+  var basePath = opts.appRoot + '/' + opts.src;
   var fileName;
   var file;
   var processor = function (e, output) {
-    var destPath = opts.appRoot + '/' + opts.dest + '/' + fileName + '.css';
+    var filePath = path.dirname(file);
+    filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
+    log('less file path:', filePath);
+    var destPath = opts.appRoot + '/' + opts.dest + filePath + '/' + fileName + '.css';
+    log('less full path:', destPath);
     var lessDef = fileSave(destPath)
       .write(output.css, 'utf8')
       .end();
@@ -134,7 +148,7 @@ copy.styles = function (opts) {
     });
   };
   log('Processing less files.');
-  glob(opts.appRoot + '/' + opts.src + '/**/*.less', function (er, files) {
+  glob(basePath + '/**/*.less', function (er, files) {
     log('Total Less files found:', files.length);
     for (var i = 0; i < files.length; i++) {
       file = files[i] || '';
