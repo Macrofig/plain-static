@@ -9,38 +9,48 @@ var xtend = require('xtend');
 var fse = require('fs-extra');
 var del = require('del');
 var copy = {};
-var debug = require('debug')('copy');
+var debug = require('debug');
 
 var checkDeepProperty = require('./checkDeepProp.js');
 var markdown;
 
 // Clear dist
 copy.clean = function (opts, pattern) {
+  var log = debug('copy:clean');
+  log('Cleaning folder');
   pattern = pattern ? pattern : '**';
-  return del.sync([opts.dist + '/' + pattern, '!'+opts.dist]);
+  var patterns = [opts.dest + '/' + pattern, '!' + opts.dest];
+  log(patterns);
+  return del.sync(patterns);
 };
 
 copy.markdown = markdown = function (opts, filePath) {
+  var log = debug('copy:markdown');
+  log('Compiling markdown', filePath);
   return marked(read.sync(filePath, 'utf8'));
 };
 
 copy.getData = function (opts) {
+  var log = debug('copy:getData');
+  log('Pattern:', opts.appRoot + '/' + opts.src + '/**/*.json');
   var data = {};
   // Get JSON
-  glob('./'+opts.src+'/**/*.json', function (er, files) {
+  glob(opts.appRoot + '/' + opts.src + '/**/*.json', function (er, files) {
+    log('total json files found:', files.length);
     for (var i = 0; i < files.length; i++) {
       var file = files[i];
       var fileName = path.basename(file, '.json');
       data[fileName] = JSON.parse(read.sync(file, 'utf8'));
       var hasMD = checkDeepProperty(data[fileName], 'markdown');
-      debug(hasMD);
+      log(hasMD);
       if (hasMD && hasMD.length && hasMD.length > 0) {
-        debug('JSON file has ' + hasMD.length + ' markdown items.');
+        log('JSON file has ' + hasMD.length + ' markdown items.');
         for (var j = 0; j < hasMD.length; j++) {
-          debug(hasMD[j]);
-          var markdownPath = [__dirname];
-          markdownPath.push('/../'+opts.src+'/');
+          log(hasMD[j]);
+          var markdownPath = [opts.appRoot + '/'];
+          markdownPath.push(opts.src + '/');
           markdownPath.push(hasMD[j].markdown);
+          log('Markdown path:', markdownPath.join(''));
           hasMD[j].content = markdown(opts, markdownPath.join(''));
         }
       }
@@ -48,7 +58,8 @@ copy.getData = function (opts) {
   });
 
   // Build content
-  glob('./'+opts.src+'/**/*.md', function (er, files) {
+  glob(opts.appRoot + '/' + opts.src + '/**/*.md', function (er, files) {
+    log('total md files found:', files.length);
     for (var i = 0; i < files.length; i++) {
       var file = files[i];
       var fileName = path.basename(file, '.md');
@@ -62,68 +73,87 @@ copy.getData = function (opts) {
 
 // Build templates
 copy.templates = function (opts, data) {
-  glob('./'+opts.src+'/**/*.mustache', function (er, files) {
+  var log = debug('copy:templates');
+  var destPath;
+  var file;
+  var fileName;
+  var callbacks = {
+    finish: function () {
+      log(file + ' saved to ' + destPath);
+    },
+    error: function () {
+      log('error saving ' + fileName);
+    }
+  };
+  glob(opts.appRoot + '/' + opts.src + '/**/*.mustache', function (er, files) {
+    log('total mustache templates found:', files.length);
     for (var i = 0; i < files.length; i++) {
-      var destPath;
-      var file = files[i];
-      var fileName = path.basename(file, '.mustache');
+      destPath = '';
+      file = files[i] || '';
+      fileName = path.basename(file, '.mustache') || '';
+      log('Processing template:', fileName);
       // Get files
       var template = read.sync(file, 'utf8');
       // Build
       var indexFile = Mustache.render(template, data[fileName]);
       if (fileName === 'index') {
-        destPath = './'+opts.dist+'/' + fileName + '.html';
+        destPath = opts.appRoot + '/' + opts.dest + '/' + fileName + '.html';
       } else {
-        destPath = './'+opts.dist+'/' + fileName + '/index.html';
+        destPath = opts.appRoot + '/' + opts.dest + '/' + fileName + '/index.html';
       }
+      log('Template destinaton:', destPath);
 
       var fileDef = fileSave(destPath)
         .write(indexFile, 'utf8')
         .end();
 
-      fileDef.finish(function () {
-        debug(file + ' saved to ' + destPath);
-      });
+      fileDef.finish(callbacks.finish);
 
-      fileDef.error(function () {
-        debug('error saving ' + fileName);
-      });
+      fileDef.error(callbacks.error);
     }
   });
 };
 
 // Build styles
 copy.styles = function (opts) {
-  glob('./'+opts.src+'/**/*.less', function (er, files) {
+  var log = debug('copy:styles');
+  var fileName;
+  var file;
+  var processor = function (e, output) {
+    var destPath = opts.appRoot + '/' + opts.dest + '/' + fileName + '.css';
+    var lessDef = fileSave(destPath)
+      .write(output.css, 'utf8')
+      .end();
+
+    lessDef.finish(function () {
+      log(file + ' saved to ' + destPath);
+    });
+
+    lessDef.error(function () {
+      log('error saving ' + fileName);
+    });
+  };
+  log('Processing less files.');
+  glob(opts.appRoot + '/' + opts.src + '/**/*.less', function (er, files) {
+    log('Total Less files found:', files.length);
     for (var i = 0; i < files.length; i++) {
-      var file = files[i];
-      var fileName = path.basename(file, '.less');
+      file = files[i] || '';
+      fileName = path.basename(file, '.less') || '';
+      log('Processing less file:', fileName);
       var styles = read.sync(file, 'utf8');
-      less.render(styles, function (e, output) {
-        var destPath = './'+opts.dist+'/' + fileName + '.css';
-        var lessDef = fileSave(destPath)
-          .write(output.css, 'utf8')
-          .end();
-
-        lessDef.finish(function () {
-          debug(file + ' saved to ' + destPath);
-        });
-
-        lessDef.error(function () {
-          debug('error saving ' + fileName);
-        });
-      });
+      less.render(styles, processor);
     }
   });
 };
 
 //copy Images
-copy.images = function () {
-  fse.copy(opts.src+'/images/', opts.dist+'/images/', function (err) {
+copy.images = function (opts) {
+  var log = debug('copy:images');
+  fse.copy(opts.appRoot + '/' + opts.src + '/images/', opts.dest + '/images/', function (err) {
     if (err) {
-      debug('Image copy error!');
+      log('Image copy error!');
     } else {
-      debug('Images copied.');
+      log('Images copied.');
     }
   });
 };
