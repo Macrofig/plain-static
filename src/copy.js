@@ -12,6 +12,7 @@ var copy = {};
 var debug = require('debug');
 
 var checkDeepProperty = require('./checkDeepProp.js');
+var extraProps = require('./additionalDataProps.js');
 var markdown;
 
 // Clear dist
@@ -35,6 +36,22 @@ copy.getData = function (opts) {
   var basePath = opts.appRoot + '/' + opts.src;
   log('Pattern:', basePath + '/**/*.json');
   var data = {};
+
+  var checkForMarkdown = function (target) {
+    var hasMD = checkDeepProperty(target, 'markdown');
+    log(hasMD);
+    if (hasMD && hasMD.length && hasMD.length > 0) {
+      log('JSON file has ' + hasMD.length + ' markdown items.');
+      for (var j = 0; j < hasMD.length; j++) {
+        log(hasMD[j]);
+        var markdownPath = [opts.appRoot + '/'];
+        markdownPath.push(opts.src + '/');
+        markdownPath.push(hasMD[j].markdown);
+        log('Markdown path:', markdownPath.join(''));
+        hasMD[j].content = markdown(opts, markdownPath.join(''));
+      }
+    }
+  }
   // Get JSON
   glob(basePath + '/**/*.json', function (er, files) {
     log('total json files found:', files.length);
@@ -44,20 +61,24 @@ copy.getData = function (opts) {
       var filePath = path.dirname(file);
       filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
 
-      data[filePath + fileName] = JSON.parse(read.sync(file, 'utf8'));
-      var hasMD = checkDeepProperty(data[filePath + fileName], 'markdown');
-      log(hasMD);
-      if (hasMD && hasMD.length && hasMD.length > 0) {
-        log('JSON file has ' + hasMD.length + ' markdown items.');
-        for (var j = 0; j < hasMD.length; j++) {
-          log(hasMD[j]);
-          var markdownPath = [opts.appRoot + '/'];
-          markdownPath.push(opts.src + '/');
-          markdownPath.push(hasMD[j].markdown);
-          log('Markdown path:', markdownPath.join(''));
-          hasMD[j].content = markdown(opts, markdownPath.join(''));
-        }
-      }
+      data[filePath + fileName] = xtend(JSON.parse(read.sync(file, 'utf8')), extraProps);
+
+      checkForMarkdown(data[filePath + fileName])
+    }
+  });
+
+  // Get JS
+  glob(basePath + '/**/*.js', function (er, files) {
+    log('total js files found:', files.length);
+    for (var i = 0; i < files.length; i++) {
+      var file = files[i];
+      var fileName = path.basename(file, '.js');
+      var filePath = path.dirname(file);
+      filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
+
+      data[filePath + fileName] = xtend(require(file), extraProps);
+
+      checkForMarkdown(data[filePath + fileName])
     }
   });
 

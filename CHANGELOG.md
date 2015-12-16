@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0]
+
+### Added
+
+- Added `_meta` property that contains additional static (not derived from content) properties
+- Added `today`, current unix time stamp, to `_meta`.
+- Ability to read JavaScript files for properties. Needed to create Mustache helpers.
+
 ## [1.2.0]
 
 ### Added
