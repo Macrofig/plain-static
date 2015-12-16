@@ -5,6 +5,7 @@
 ### Added
 
 - Added `prepublish` script that runs lint and test tools before publishing to npm
+- Added less example to demo.
 
 ### Changed
 
