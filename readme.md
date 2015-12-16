@@ -6,7 +6,7 @@ Currently only works with Markdown, Mustache, and Less.
 
 ## Install
 
-`npm plain-static --save-dev`
+`npm install plain-static --save-dev`
 
 ## Use
 
@@ -33,6 +33,26 @@ A `JSON` file is parsed and stored in the main data object. The data is mostly l
 **Markdown property**
 
 The markdown property should be a file name that can be found in the defined source directory. You'll get a nasty error during build if it's not there!
+
+So, if the object looks like:
+
+```json
+{
+  "title": "hello!",
+  "markdown": "index.md"
+}
+```
+
+The parsed object will look like...
+
+```js
+{
+  title: "hello!",
+  content: 'MARKDOWN PARSED INTO HTML'
+}
+```
+
+The Markdown file is processed using the data object. The markdown property is stripped from the object.
 
 **Data storage**
 
