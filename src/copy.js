@@ -51,7 +51,7 @@ copy.getData = function (opts) {
         hasMD[j].content = markdown(opts, markdownPath.join(''));
       }
     }
-  }
+  };
   // Get JSON
   glob(basePath + '/**/*.json', function (er, files) {
     log('total json files found:', files.length);
@@ -63,7 +63,7 @@ copy.getData = function (opts) {
 
       data[filePath + fileName] = xtend(JSON.parse(read.sync(file, 'utf8')), extraProps);
 
-      checkForMarkdown(data[filePath + fileName])
+      checkForMarkdown(data[filePath + fileName]);
     }
   });
 
@@ -78,7 +78,7 @@ copy.getData = function (opts) {
 
       data[filePath + fileName] = xtend(require(file), extraProps);
 
-      checkForMarkdown(data[filePath + fileName])
+      checkForMarkdown(data[filePath + fileName]);
     }
   });
 

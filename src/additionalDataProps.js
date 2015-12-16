@@ -1,5 +1,5 @@
 var extraProps = {};
 
-extraProps['today'] = Date.now();
+extraProps.today = Date.now();
 
-module.exports = {'_meta': extraProps};
+module.exports = {_meta: extraProps};
