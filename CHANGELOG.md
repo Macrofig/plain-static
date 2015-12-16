@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Added `prepublish` script that runs lint and test tools before publishing to npm
+
+### Changed
+
+- Improved notes in readme file.
+
 ## [1.1.0] - 2015-12-16
 
 ### Added

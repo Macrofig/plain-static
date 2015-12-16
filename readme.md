@@ -1,6 +1,6 @@
 # Plain Static
 
-A simple static site generator.
+A simple static site generator. For those times that you don't need streams or pipes or plugins... you just need a site built quickly.
 
 Currently only works with Markdown, Mustache, and Less.
 
@@ -52,7 +52,7 @@ The parsed object will look like...
 }
 ```
 
-The Markdown file is processed using the data object. The markdown property is stripped from the object.
+The Markdown file is processed using the data object. The markdown property is stripped from the object. The tool will also do a deep check for nested `markdown` properties.
 
 **Data storage**
 
