@@ -1,13 +1,18 @@
 # Changelog
 
-## [unreleased]
+## [1.0.0] - 2015-12-15
+
+## Added
+
+- Added description and repo to package.json
+- Added ability to define app root
 
 ### Changed
 
 - Improved dependencies
-- Added description and repo to package.json
+- Fixed remaining XO errors
 
-## [0.1.0] - 2015-12-05
+## [0.1.0] - 2015-12-15
 
 ### Created
 

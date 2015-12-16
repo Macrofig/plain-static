@@ -1,15 +1,15 @@
 {
   "name": "plain-static",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "description": "A simple static site generator.",
   "main": "index.js",
-  "repository" : {
-    "type" : "git",
-    "url" : "https://github.com/Macrofig/plain-static.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Macrofig/plain-static.git"
   },
   "scripts": {
     "lint": "xo",
-    "test": "npm run lint"
+    "test": "npm run lint && mocha"
   },
   "author": "Juan Orozco <hi@juanorozco.com> (http://juanorozco.com)",
   "license": "ISC",
@@ -27,13 +27,15 @@
     "xtend": "^4.0.1"
   },
   "devDependencies": {
+    "documentjs": "^0.3.6",
+    "mocha": "^2.3.4",
     "xo": "^0.11.2"
   },
   "xo": {
     "space": 2,
     "envs": [
       "node",
-      "qunit"
+      "mocha"
     ],
     "rules": {
       "no-lonely-if": 0,
