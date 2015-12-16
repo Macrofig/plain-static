@@ -1,11 +1,11 @@
 {
   "name": "simple-static",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "lint": "xo",
-    "test": "xo"
+    "test": "npm run lint"
   },
   "author": "Juan Orozco <hi@juanorozco.com> (http://juanorozco.com)",
   "license": "ISC",
