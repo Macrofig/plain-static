@@ -6,9 +6,10 @@ var noop = function () {
 };
 
 module.exports = function (opts) {
-  var data = copy.getData(opts);
+  var data = {};
 
   return function (cb) {
+    data = copy.getData(opts);
     cb = typeof cb === 'function' ? cb : noop;
     // data changes
     watch.watch('./src/?(*.json|*.md)', {ignored: /[\/\\]\./}).on('all', function () {

@@ -88,8 +88,10 @@ copy.getData = function (opts) {
     for (var i = 0; i < files.length; i++) {
       var file = files[i];
       var fileName = path.basename(file, '.md');
+      var filePath = path.dirname(file);
+      filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
       var md = markdown(opts, file);
-      data[fileName] = xtend(data[fileName] || {}, {content: md});
+      data[filePath + fileName] = xtend(data[fileName] || {}, {content: md});
     }
   });
 

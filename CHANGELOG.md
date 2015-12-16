@@ -1,6 +1,13 @@
 # Changelog
 
-## [1.3.0]
+## [1.3.1] - 2015-12-16
+
+## Changed
+
+- Fixed markdown content being attached to incorrect data object
+- Fixed data being built needlessly by watch
+
+## [1.3.0] - 2015-12-16
 
 ### Added
 
@@ -8,7 +15,7 @@
 - Added `today`, current unix time stamp, to `_meta`.
 - Ability to read JavaScript files for properties. Needed to create Mustache helpers.
 
-## [1.2.0]
+## [1.2.0] - 2015-12-16
 
 ### Added
 
