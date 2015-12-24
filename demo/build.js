@@ -5,5 +5,5 @@ var debug = require('debug')('demo');
 var def = plainStatic();
 
 def.then(function () {
-    debug('DEMO BUILD COMPLETE');
+  debug('DEMO BUILD COMPLETE');
 });

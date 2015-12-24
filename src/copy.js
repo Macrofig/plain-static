@@ -55,55 +55,58 @@ copy.getData = function (opts) {
   };
 
   return new Promise(function (res) {
-    var defs = [];
-      // Get JSON
-      var jsonFiles = glob.sync(basePath + '/**/*.json');
-      if (jsonFiles && jsonFiles.length) {
-        log('total json files found:', jsonFiles.length);
-        for (var i = 0; i < jsonFiles.length; i++) {
-          var file = jsonFiles[i];
-          var fileName = path.basename(file, '.json');
-          var filePath = path.dirname(file);
-          filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
+    // Get JSON
+    var jsonFiles = glob.sync(basePath + '/**/*.json');
+    var i;
+    var file;
+    var fileName;
+    var filePath;
 
-          data[filePath + fileName] = xtend(JSON.parse(read.sync(file, 'utf8')), extraProps);
+    if (jsonFiles && jsonFiles.length) {
+      log('total json files found:', jsonFiles.length);
+      for (i = 0; i < jsonFiles.length; i++) {
+        file = jsonFiles[i];
+        fileName = path.basename(file, '.json');
+        filePath = path.dirname(file);
+        filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
 
-          checkForMarkdown(data[filePath + fileName]);
-        }
+        data[filePath + fileName] = xtend(JSON.parse(read.sync(file, 'utf8')), extraProps);
+
+        checkForMarkdown(data[filePath + fileName]);
       }
+    }
 
-      // Get JS
-      var jsFiles = glob.sync(basePath + '/**/*.js');
-      if (jsFiles && jsFiles.length) {
-        log('total js files found:', jsFiles.length);
-        for (var i = 0; i < jsFiles.length; i++) {
-          var file = jsFiles[i];
-          var fileName = path.basename(file, '.js');
-          var filePath = path.dirname(file);
-          filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
+    // Get JS
+    var jsFiles = glob.sync(basePath + '/**/*.js');
+    if (jsFiles && jsFiles.length) {
+      log('total js files found:', jsFiles.length);
+      for (i = 0; i < jsFiles.length; i++) {
+        file = jsFiles[i];
+        fileName = path.basename(file, '.js');
+        filePath = path.dirname(file);
+        filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
 
-          data[filePath + fileName] = xtend(require(file), extraProps);
+        data[filePath + fileName] = xtend(require(file), extraProps);
 
-          checkForMarkdown(data[filePath + fileName]);
-        }
+        checkForMarkdown(data[filePath + fileName]);
       }
+    }
 
-      // Build content
-      var mdFiles = glob.sync(basePath + '/**/*.md');
-      if (mdFiles && mdFiles.length) {
-        log('total md files found:', mdFiles.length);
-        for (var i = 0; i < mdFiles.length; i++) {
-          var file = mdFiles[i];
-          var fileName = path.basename(file, '.md');
-          var filePath = path.dirname(file);
-          filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
-          var md = markdown(opts, file);
-          data[filePath + fileName] = xtend(data[fileName] || {}, {content: md});
-        }
+    // Build content
+    var mdFiles = glob.sync(basePath + '/**/*.md');
+    if (mdFiles && mdFiles.length) {
+      log('total md files found:', mdFiles.length);
+      for (i = 0; i < mdFiles.length; i++) {
+        file = mdFiles[i];
+        fileName = path.basename(file, '.md');
+        filePath = path.dirname(file);
+        filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
+        var md = markdown(opts, file);
+        data[filePath + fileName] = xtend(data[fileName] || {}, {content: md});
       }
-      res(data);
+    }
+    res(data);
   });
-
 };
 
 // Build templates
@@ -204,13 +207,11 @@ copy.styles = function (opts) {
         log('All styles processed');
         res();
       });
-
     });
   });
 };
 
 //copy files
-// TODO: This should copy files that match a pattern. Preserve folder structure, copy to dist.
 copy.staticFiles = function (opts) {
   var basePath = opts.appRoot + '/' + opts.src;
   var log = debug('copy:staticFiles');
@@ -226,6 +227,8 @@ copy.staticFiles = function (opts) {
   };
 
   return new Promise(function (res) {
+    var file;
+    var fileName;
     log('Searching for files...');
     glob(basePath + '/' + opts.files, function (er, files) {
       log('Total files found:', files.length);
@@ -233,26 +236,24 @@ copy.staticFiles = function (opts) {
         file = files[i] || '';
         fileName = path.basename(file, path.extname(file)) || '';
         log('Processing file:', fileName);
-        var fileContents = read.sync(file, 'utf8');
         var filePath = path.dirname(file);
         filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
         var fileDef = copyFile(file, opts.appRoot + '/' + opts.dest + filePath + '/' + fileName + path.extname(file));
 
-        fileDef.finish(function () {
-          log(file + ' saved to ' + destPath);
-        });
+        // fileDef.finish(function () {
+        //   log(file + ' saved to ' + destPath);
+        // });
 
-        fileDef.error(function () {
-          log('error saving ' + fileName);
-        });
+        // fileDef.error(function () {
+        //   log('error saving ' + fileName);
+        // });
         defs.push(fileDef);
       }
       Promise.all(defs).then(function () {
         log('All files processed');
         res();
       });
-
     });
   });
-}
+};
 module.exports = copy;
