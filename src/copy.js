@@ -220,6 +220,8 @@ copy.staticFiles = function (opts) {
   log('copy.staticFiles');
   var copyFile = function (fileFrom, fileTo) {
     return new Promise(function (res) {
+      log('Moving file:', fileFrom);
+      log('Target:', fileTo);
       fse.copy(fileFrom, fileTo, function () {
         res();
       });

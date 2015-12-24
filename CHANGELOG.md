@@ -1,19 +1,29 @@
 # Changelog
 
-## [1.4.0] - 2015-12-17
+## [UNRELEASED]
 
-## Added
+### Added
+
+- Added plain text demo files
+
+### Changed
+
+- Updated demo so it demos the copyFiles method
+
+## [1.4.0] - 2015-12-24
+
+### Added
 
 - Main build script and copy methods now return promises
 - Copy files method that copies files based on pattern. Preserves folder structure.
 
-## Removed
+### Removed
 
 - Removed images copy method
 
 ## [1.3.1] - 2015-12-16
 
-## Changed
+### Changed
 
 - Fixed markdown content being attached to incorrect data object
 - Fixed data being built needlessly by watch
