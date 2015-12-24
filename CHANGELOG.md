@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.4.0] - 2015-12-17
+
+## Added
+
+- Main build script and copy methods now return promises
+- Copy files method that copies files based on pattern. Preserves folder structure.
+
+## Removed
+
+- Removed images copy method
+
 ## [1.3.1] - 2015-12-16
 
 ## Changed

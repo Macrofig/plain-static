@@ -8,9 +8,11 @@ module.exports = function (opts) {
   opts = xtend(defaults, opts);
   var watch = watcher(opts);
   return function (watchCB) {
-    build(opts);
+    var def = build(opts);
     if (watchCB) {
       watch(watchCB);
     }
+
+    return def;
   };
 };

@@ -10,6 +10,7 @@ var fse = require('fs-extra');
 var del = require('del');
 var copy = {};
 var debug = require('debug');
+var Promise = require('promise');
 
 var checkDeepProperty = require('./checkDeepProp.js');
 var extraProps = require('./additionalDataProps.js');
@@ -22,7 +23,7 @@ copy.clean = function (opts, pattern) {
   pattern = pattern ? pattern : '**';
   var patterns = [opts.dest + '/' + pattern, '!' + opts.dest];
   log(patterns);
-  return del.sync(patterns);
+  return del(patterns);
 };
 
 copy.markdown = markdown = function (opts, filePath) {
@@ -52,50 +53,57 @@ copy.getData = function (opts) {
       }
     }
   };
-  // Get JSON
-  glob(basePath + '/**/*.json', function (er, files) {
-    log('total json files found:', files.length);
-    for (var i = 0; i < files.length; i++) {
-      var file = files[i];
-      var fileName = path.basename(file, '.json');
-      var filePath = path.dirname(file);
-      filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
 
-      data[filePath + fileName] = xtend(JSON.parse(read.sync(file, 'utf8')), extraProps);
+  return new Promise(function (res) {
+    var defs = [];
+      // Get JSON
+      var jsonFiles = glob.sync(basePath + '/**/*.json');
+      if (jsonFiles && jsonFiles.length) {
+        log('total json files found:', jsonFiles.length);
+        for (var i = 0; i < jsonFiles.length; i++) {
+          var file = jsonFiles[i];
+          var fileName = path.basename(file, '.json');
+          var filePath = path.dirname(file);
+          filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
 
-      checkForMarkdown(data[filePath + fileName]);
-    }
+          data[filePath + fileName] = xtend(JSON.parse(read.sync(file, 'utf8')), extraProps);
+
+          checkForMarkdown(data[filePath + fileName]);
+        }
+      }
+
+      // Get JS
+      var jsFiles = glob.sync(basePath + '/**/*.js');
+      if (jsFiles && jsFiles.length) {
+        log('total js files found:', jsFiles.length);
+        for (var i = 0; i < jsFiles.length; i++) {
+          var file = jsFiles[i];
+          var fileName = path.basename(file, '.js');
+          var filePath = path.dirname(file);
+          filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
+
+          data[filePath + fileName] = xtend(require(file), extraProps);
+
+          checkForMarkdown(data[filePath + fileName]);
+        }
+      }
+
+      // Build content
+      var mdFiles = glob.sync(basePath + '/**/*.md');
+      if (mdFiles && mdFiles.length) {
+        log('total md files found:', mdFiles.length);
+        for (var i = 0; i < mdFiles.length; i++) {
+          var file = mdFiles[i];
+          var fileName = path.basename(file, '.md');
+          var filePath = path.dirname(file);
+          filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
+          var md = markdown(opts, file);
+          data[filePath + fileName] = xtend(data[fileName] || {}, {content: md});
+        }
+      }
+      res(data);
   });
 
-  // Get JS
-  glob(basePath + '/**/*.js', function (er, files) {
-    log('total js files found:', files.length);
-    for (var i = 0; i < files.length; i++) {
-      var file = files[i];
-      var fileName = path.basename(file, '.js');
-      var filePath = path.dirname(file);
-      filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
-
-      data[filePath + fileName] = xtend(require(file), extraProps);
-
-      checkForMarkdown(data[filePath + fileName]);
-    }
-  });
-
-  // Build content
-  glob(basePath + '/**/*.md', function (er, files) {
-    log('total md files found:', files.length);
-    for (var i = 0; i < files.length; i++) {
-      var file = files[i];
-      var fileName = path.basename(file, '.md');
-      var filePath = path.dirname(file);
-      filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
-      var md = markdown(opts, file);
-      data[filePath + fileName] = xtend(data[fileName] || {}, {content: md});
-    }
-  });
-
-  return data;
 };
 
 // Build templates
@@ -105,6 +113,7 @@ copy.templates = function (opts, data) {
   var destPath;
   var file;
   var fileName;
+  var defs = [];
   var callbacks = {
     finish: function () {
       log(file + ' saved to ' + destPath);
@@ -113,36 +122,44 @@ copy.templates = function (opts, data) {
       log('error saving ' + fileName);
     }
   };
-  glob(basePath + '/**/*.mustache', function (er, files) {
-    log('total mustache templates found:', files.length);
-    for (var i = 0; i < files.length; i++) {
-      destPath = '';
-      file = files[i] || '';
-      fileName = path.basename(file, '.mustache') || '';
-      var filePath = path.dirname(file);
-      filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
 
-      log('Processing template:', fileName);
-      log('template path:', filePath);
-      // Get files
-      var template = read.sync(file, 'utf8');
-      // Build
-      var indexFile = Mustache.render(template, data[filePath + fileName]);
-      if (fileName === 'index') {
-        destPath = opts.appRoot + '/' + opts.dest + filePath + '/' + fileName + '.html';
-      } else {
-        destPath = opts.appRoot + '/' + opts.dest + filePath + '/' + fileName + '/index.html';
+  return new Promise(function (res) {
+    glob(basePath + '/**/*.mustache', function (er, files) {
+      log('total mustache templates found:', files.length);
+      for (var i = 0; i < files.length; i++) {
+        destPath = '';
+        file = files[i] || '';
+        fileName = path.basename(file, '.mustache') || '';
+        var filePath = path.dirname(file);
+        filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
+
+        log('Processing template:', fileName);
+        log('template path:', filePath);
+        // Get files
+        var template = read.sync(file, 'utf8');
+        // Build
+        var indexFile = Mustache.render(template, data[filePath + fileName]);
+        if (fileName === 'index') {
+          destPath = opts.appRoot + '/' + opts.dest + filePath + '/' + fileName + '.html';
+        } else {
+          destPath = opts.appRoot + '/' + opts.dest + filePath + '/' + fileName + '/index.html';
+        }
+        log('Template destinaton:', destPath);
+
+        var fileDef = fileSave(destPath)
+          .write(indexFile, 'utf8')
+          .end();
+
+        fileDef.finish(callbacks.finish);
+
+        fileDef.error(callbacks.error);
+        defs.push(fileDef);
       }
-      log('Template destinaton:', destPath);
-
-      var fileDef = fileSave(destPath)
-        .write(indexFile, 'utf8')
-        .end();
-
-      fileDef.finish(callbacks.finish);
-
-      fileDef.error(callbacks.error);
-    }
+      Promise.all(defs).then(function () {
+        log('All templates processed');
+        res();
+      });
+    });
   });
 };
 
@@ -152,6 +169,7 @@ copy.styles = function (opts) {
   var basePath = opts.appRoot + '/' + opts.src;
   var fileName;
   var file;
+  var defs = [];
   var processor = function (e, output) {
     var filePath = path.dirname(file);
     filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
@@ -169,30 +187,72 @@ copy.styles = function (opts) {
     lessDef.error(function () {
       log('error saving ' + fileName);
     });
+    defs.push(lessDef);
   };
   log('Processing less files.');
-  glob(basePath + '/**/*.less', function (er, files) {
-    log('Total Less files found:', files.length);
-    for (var i = 0; i < files.length; i++) {
-      file = files[i] || '';
-      fileName = path.basename(file, '.less') || '';
-      log('Processing less file:', fileName);
-      var styles = read.sync(file, 'utf8');
-      less.render(styles, processor);
-    }
+  return new Promise(function (res) {
+    glob(basePath + '/**/*.less', function (er, files) {
+      log('Total Less files found:', files.length);
+      for (var i = 0; i < files.length; i++) {
+        file = files[i] || '';
+        fileName = path.basename(file, '.less') || '';
+        log('Processing less file:', fileName);
+        var styles = read.sync(file, 'utf8');
+        less.render(styles, processor);
+      }
+      Promise.all(defs).then(function () {
+        log('All styles processed');
+        res();
+      });
+
+    });
   });
 };
 
-//copy Images
-copy.images = function (opts) {
-  var log = debug('copy:images');
-  fse.copy(opts.appRoot + '/' + opts.src + '/images/', opts.dest + '/images/', function (err) {
-    if (err) {
-      log('Image copy error!');
-    } else {
-      log('Images copied.');
-    }
-  });
-};
+//copy files
+// TODO: This should copy files that match a pattern. Preserve folder structure, copy to dist.
+copy.staticFiles = function (opts) {
+  var basePath = opts.appRoot + '/' + opts.src;
+  var log = debug('copy:staticFiles');
+  var defs = [];
 
+  log('copy.staticFiles');
+  var copyFile = function (fileFrom, fileTo) {
+    return new Promise(function (res) {
+      fse.copy(fileFrom, fileTo, function () {
+        res();
+      });
+    });
+  };
+
+  return new Promise(function (res) {
+    log('Searching for files...');
+    glob(basePath + '/' + opts.files, function (er, files) {
+      log('Total files found:', files.length);
+      for (var i = 0; i < files.length; i++) {
+        file = files[i] || '';
+        fileName = path.basename(file, path.extname(file)) || '';
+        log('Processing file:', fileName);
+        var fileContents = read.sync(file, 'utf8');
+        var filePath = path.dirname(file);
+        filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
+        var fileDef = copyFile(file, opts.appRoot + '/' + opts.dest + filePath + '/' + fileName + path.extname(file));
+
+        fileDef.finish(function () {
+          log(file + ' saved to ' + destPath);
+        });
+
+        fileDef.error(function () {
+          log('error saving ' + fileName);
+        });
+        defs.push(fileDef);
+      }
+      Promise.all(defs).then(function () {
+        log('All files processed');
+        res();
+      });
+
+    });
+  });
+}
 module.exports = copy;
