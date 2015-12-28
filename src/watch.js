@@ -1,6 +1,6 @@
 var watch = require('chokidar');
 var copy = require('./copy.js');
-var debug = require('debug')('watch');
+var log = require('debug')('plain-static:watch');
 var noop = function () {
   return;
 };
@@ -13,39 +13,39 @@ module.exports = function (opts) {
     cb = typeof cb === 'function' ? cb : noop;
     // data changes
     watch.watch('./src/?(*.json|*.md)', {ignored: /[\/\\]\./}).on('all', function () {
-      debug('Data file changed');
+      log('Data file changed');
       copy.clean(opts, '**/*.html');
       data = copy.getData(opts);
       copy.templates(opts, data);
       cb();
-      debug('Templates updated.');
+      log('Templates updated.');
     });
 
     watch.watch('./src/*.mustache', {ignored: /[\/\\]\./}).on('all', function () {
-      debug('Template changed.');
+      log('Template changed.');
       copy.clean(opts, '**/*.html');
 
       copy.templates(opts, data);
       cb();
-      debug('Templates updated.');
+      log('Templates updated.');
     });
 
     watch.watch('./src/*.less', {ignored: /[\/\\]\./}).on('all', function () {
-      debug('Less file changed.');
+      log('Less file changed.');
       copy.clean(opts, '**/*.css');
 
       copy.styles(opts);
       cb();
-      debug('Styles updated.');
+      log('Styles updated.');
     });
 
     watch.watch('./src/images/*.*', {ignored: /[\/\\]\./}).on('all', function () {
-      debug('Image file changed.');
+      log('Image file changed.');
       copy.clean(opts, 'images/');
 
       copy.images(opts);
       cb();
-      debug('Image files updated.');
+      log('Image files updated.');
     });
   };
 };

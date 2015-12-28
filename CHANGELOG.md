@@ -1,6 +1,6 @@
 # Changelog
 
-## [UNRELEASED]
+## [1.4.2] - 2015-12-28
 
 ### Added
 
@@ -9,6 +9,8 @@
 ### Changed
 
 - Updated demo so it demos the copyFiles method
+- Fixed parsing of markdown files when multiples exist nested in single JSON/JS object.
+- Cleaned up namespacing of debug statements.
 
 ## [1.4.0] - 2015-12-24
 

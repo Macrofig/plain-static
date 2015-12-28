@@ -1,6 +1,6 @@
 var copy = require('./copy.js');
 var Promise = require('promise');
-var log = require('debug')('build');
+var log = require('debug')('plain-static:build');
 
 module.exports = function (opts) {
   return new Promise(function (res, rej) {

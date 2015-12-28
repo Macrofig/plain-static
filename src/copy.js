@@ -18,7 +18,7 @@ var markdown;
 
 // Clear dist
 copy.clean = function (opts, pattern) {
-  var log = debug('copy:clean');
+  var log = debug('plain-static:copy-clean');
   log('Cleaning folder');
   pattern = pattern ? pattern : '**';
   var patterns = [opts.dest + '/' + pattern, '!' + opts.dest];
@@ -27,13 +27,13 @@ copy.clean = function (opts, pattern) {
 };
 
 copy.markdown = markdown = function (opts, filePath) {
-  var log = debug('copy:markdown');
+  var log = debug('plain-static:copy-markdown');
   log('Compiling markdown', filePath);
   return marked(read.sync(filePath, 'utf8'));
 };
 
 copy.getData = function (opts) {
-  var log = debug('copy:getData');
+  var log = debug('plain-static:copy-getData');
   var basePath = opts.appRoot + '/' + opts.src;
   log('Pattern:', basePath + '/**/*.json');
   var data = {};
@@ -52,6 +52,7 @@ copy.getData = function (opts) {
         hasMD[j].content = markdown(opts, markdownPath.join(''));
       }
     }
+    return hasMD;
   };
 
   return new Promise(function (res) {
@@ -61,6 +62,7 @@ copy.getData = function (opts) {
     var file;
     var fileName;
     var filePath;
+    var foundMDFiles;
 
     if (jsonFiles && jsonFiles.length) {
       log('total json files found:', jsonFiles.length);
@@ -72,7 +74,8 @@ copy.getData = function (opts) {
 
         data[filePath + fileName] = xtend(JSON.parse(read.sync(file, 'utf8')), extraProps);
 
-        checkForMarkdown(data[filePath + fileName]);
+        foundMDFiles = checkForMarkdown(data[filePath + fileName]);
+        log('JSON MDfiles:', foundMDFiles);
       }
     }
 
@@ -88,7 +91,8 @@ copy.getData = function (opts) {
 
         data[filePath + fileName] = xtend(require(file), extraProps);
 
-        checkForMarkdown(data[filePath + fileName]);
+        foundMDFiles = checkForMarkdown(data[filePath + fileName]);
+        log('JS MDfiles:', foundMDFiles);
       }
     }
 
@@ -111,7 +115,7 @@ copy.getData = function (opts) {
 
 // Build templates
 copy.templates = function (opts, data) {
-  var log = debug('copy:templates');
+  var log = debug('plain-static:copy-templates');
   var basePath = opts.appRoot + '/' + opts.src;
   var destPath;
   var file;
@@ -168,7 +172,7 @@ copy.templates = function (opts, data) {
 
 // Build styles
 copy.styles = function (opts) {
-  var log = debug('copy:styles');
+  var log = debug('plain-static:copy-styles');
   var basePath = opts.appRoot + '/' + opts.src;
   var fileName;
   var file;
@@ -214,7 +218,7 @@ copy.styles = function (opts) {
 //copy files
 copy.staticFiles = function (opts) {
   var basePath = opts.appRoot + '/' + opts.src;
-  var log = debug('copy:staticFiles');
+  var log = debug('plain-static:copy-staticFiles');
   var defs = [];
 
   log('copy.staticFiles');
