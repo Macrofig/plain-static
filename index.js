@@ -1,5 +1,5 @@
 var xtend = require('xtend');
-var defaults = {src: 'src', dest: 'dist', appRoot: process.cwd()};
+var defaults = {src: 'src', targetFiles: '/**', dest: 'dist', appRoot: process.cwd()};
 
 var build = require('./src/build.js');
 var watcher = require('./src/watch.js');

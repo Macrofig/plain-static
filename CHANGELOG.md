@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.4.3] - 2016-01-03
+
+### Added
+
+- Added targetFiles option, used to narrow down specific files in src directory to process.
+
+### Changed
+
+- Glob patterns new rely on new targetFiles option to search in deep folders.
+
 ## [1.4.2] - 2015-12-28
 
 ### Added

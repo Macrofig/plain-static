@@ -35,7 +35,8 @@ copy.markdown = markdown = function (opts, filePath) {
 copy.getData = function (opts) {
   var log = debug('plain-static:copy-getData');
   var basePath = opts.appRoot + '/' + opts.src;
-  log('Pattern:', basePath + '/**/*.json');
+  var searchPath = basePath + opts.targetFiles;
+  log('Pattern:', searchPath + '/*.json');
   var data = {};
 
   var checkForMarkdown = function (target) {
@@ -57,7 +58,7 @@ copy.getData = function (opts) {
 
   return new Promise(function (res) {
     // Get JSON
-    var jsonFiles = glob.sync(basePath + '/**/*.json');
+    var jsonFiles = glob.sync(searchPath + '/*.json');
     var i;
     var file;
     var fileName;
@@ -70,7 +71,7 @@ copy.getData = function (opts) {
         file = jsonFiles[i];
         fileName = path.basename(file, '.json');
         filePath = path.dirname(file);
-        filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
+        filePath = filePath.substring(filePath.indexOf(searchPath) + searchPath.length, filePath.length);
 
         data[filePath + fileName] = xtend(JSON.parse(read.sync(file, 'utf8')), extraProps);
 
@@ -80,7 +81,7 @@ copy.getData = function (opts) {
     }
 
     // Get JS
-    var jsFiles = glob.sync(basePath + '/**/*.js');
+    var jsFiles = glob.sync(searchPath + '/*.js');
     if (jsFiles && jsFiles.length) {
       log('total js files found:', jsFiles.length);
       for (i = 0; i < jsFiles.length; i++) {
@@ -94,10 +95,12 @@ copy.getData = function (opts) {
         foundMDFiles = checkForMarkdown(data[filePath + fileName]);
         log('JS MDfiles:', foundMDFiles);
       }
+    } else {
+      log('No JS files found.');
     }
 
     // Build content
-    var mdFiles = glob.sync(basePath + '/**/*.md');
+    var mdFiles = glob.sync(searchPath + '/*.md');
     if (mdFiles && mdFiles.length) {
       log('total md files found:', mdFiles.length);
       for (i = 0; i < mdFiles.length; i++) {
@@ -108,6 +111,8 @@ copy.getData = function (opts) {
         var md = markdown(opts, file);
         data[filePath + fileName] = xtend(data[fileName] || {}, {content: md});
       }
+    } else {
+      log('No Markdown files found.');
     }
     res(data);
   });
@@ -117,6 +122,7 @@ copy.getData = function (opts) {
 copy.templates = function (opts, data) {
   var log = debug('plain-static:copy-templates');
   var basePath = opts.appRoot + '/' + opts.src;
+  var searchPath = basePath + opts.targetFiles;
   var destPath;
   var file;
   var fileName;
@@ -131,7 +137,7 @@ copy.templates = function (opts, data) {
   };
 
   return new Promise(function (res) {
-    glob(basePath + '/**/*.mustache', function (er, files) {
+    glob(searchPath + '/*.mustache', function (er, files) {
       log('total mustache templates found:', files.length);
       for (var i = 0; i < files.length; i++) {
         destPath = '';
@@ -174,6 +180,7 @@ copy.templates = function (opts, data) {
 copy.styles = function (opts) {
   var log = debug('plain-static:copy-styles');
   var basePath = opts.appRoot + '/' + opts.src;
+  var searchPath = basePath + opts.targetFiles;
   var fileName;
   var file;
   var defs = [];
@@ -198,7 +205,7 @@ copy.styles = function (opts) {
   };
   log('Processing less files.');
   return new Promise(function (res) {
-    glob(basePath + '/**/*.less', function (er, files) {
+    glob(searchPath + '/*.less', function (er, files) {
       log('Total Less files found:', files.length);
       for (var i = 0; i < files.length; i++) {
         file = files[i] || '';
@@ -218,6 +225,7 @@ copy.styles = function (opts) {
 //copy files
 copy.staticFiles = function (opts) {
   var basePath = opts.appRoot + '/' + opts.src;
+  var searchPath = basePath + opts.targetFiles;
   var log = debug('plain-static:copy-staticFiles');
   var defs = [];
 
@@ -236,7 +244,7 @@ copy.staticFiles = function (opts) {
     var file;
     var fileName;
     log('Searching for files...');
-    glob(basePath + '/' + opts.files, function (er, files) {
+    glob(searchPath + '/' + opts.files, function (er, files) {
       log('Total files found:', files.length);
       for (var i = 0; i < files.length; i++) {
         file = files[i] || '';
