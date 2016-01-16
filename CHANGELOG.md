@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.4] - 2016-01-15
+
+### Changed
+
+- Updated watch to properly use build methods
+- Fixed logic issue when compiling Less files
+
 ## [1.4.3] - 2016-01-03
 
 ### Added

@@ -181,38 +181,40 @@ copy.styles = function (opts) {
   var log = debug('plain-static:copy-styles');
   var basePath = opts.appRoot + '/' + opts.src;
   var searchPath = basePath + opts.targetFiles;
-  var fileName;
-  var file;
   var defs = [];
-  var processor = function (e, output) {
-    var filePath = path.dirname(file);
-    filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
-    log('less file path:', filePath);
-    var destPath = opts.appRoot + '/' + opts.dest + filePath + '/' + fileName + '.css';
-    log('less full path:', destPath);
-    var lessDef = fileSave(destPath)
-      .write(output.css, 'utf8')
-      .end();
+  var buildLess = function (file, styles) {
+    var fileName = path.basename(file, '.less') || '';
+    log('Processing less file:', fileName);
 
-    lessDef.finish(function () {
-      log(file + ' saved to ' + destPath);
-    });
+    less.render(styles, function (e, output) {
+      var filePath = path.dirname(file);
+      filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
+      log('less file path:', filePath);
+      var destPath = opts.appRoot + '/' + opts.dest + filePath + '/' + fileName + '.css';
+      log('less full path:', destPath);
+      var lessDef = fileSave(destPath)
+        .write(output.css, 'utf8')
+        .end();
 
-    lessDef.error(function () {
-      log('error saving ' + fileName);
+      lessDef.finish(function () {
+        log(file + ' saved to ' + destPath);
+      });
+
+      lessDef.error(function () {
+        log('error saving ' + fileName);
+      });
+      defs.push(lessDef);
     });
-    defs.push(lessDef);
   };
+
   log('Processing less files.');
   return new Promise(function (res) {
     glob(searchPath + '/*.less', function (er, files) {
       log('Total Less files found:', files.length);
       for (var i = 0; i < files.length; i++) {
-        file = files[i] || '';
-        fileName = path.basename(file, '.less') || '';
-        log('Processing less file:', fileName);
+        var file = files[i] || '';
         var styles = read.sync(file, 'utf8');
-        less.render(styles, processor);
+        buildLess(file, styles);
       }
       Promise.all(defs).then(function () {
         log('All styles processed');

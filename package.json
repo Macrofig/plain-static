@@ -1,6 +1,6 @@
 {
   "name": "plain-static",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "A simple static site generator.",
   "main": "index.js",
   "repository": {
@@ -11,7 +11,8 @@
     "lint": "xo",
     "test": "npm run lint && mocha",
     "buildDemo": "node ./demo/build.js",
-    "debugDemo": "DEBUG=plain-static npm run buildDemo",
+    "debugDemo": "DEBUG=* npm run buildDemo",
+    "debugWatch": "DEBUG=* node ./demo/watch.js",
     "prepublish": "npm test"
   },
   "author": "Juan Orozco <hi@juanorozco.com> (http://juanorozco.com)",
