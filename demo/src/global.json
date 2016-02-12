@@ -1,0 +1,9 @@
+{
+    "title": "test",
+    "nav": [
+        {
+            "label": "Heyo",
+            "link": "/heyo"
+        }
+    ]
+}

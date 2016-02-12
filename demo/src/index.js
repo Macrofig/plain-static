@@ -1,7 +1,6 @@
 var moment = require('moment');
 
 module.exports = {
-  title: 'test',
   markdown: 'index.md',
   footer: {
     markdown: 'footer.md'

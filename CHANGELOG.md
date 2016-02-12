@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.0] - 2016-02-11
+
+### Added
+
+- Created global.json/js. The data is extended to every other data file and can be found at `_global`. (Needed for persistent properties like a nav object.)
+
 ## [1.4.4] - 2016-01-15
 
 ### Changed

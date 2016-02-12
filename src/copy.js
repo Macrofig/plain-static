@@ -64,6 +64,7 @@ copy.getData = function (opts) {
     var fileName;
     var filePath;
     var foundMDFiles;
+    var jsonData;
 
     if (jsonFiles && jsonFiles.length) {
       log('total json files found:', jsonFiles.length);
@@ -73,9 +74,13 @@ copy.getData = function (opts) {
         filePath = path.dirname(file);
         filePath = filePath.substring(filePath.indexOf(searchPath) + searchPath.length, filePath.length);
 
-        data[filePath + fileName] = xtend(JSON.parse(read.sync(file, 'utf8')), extraProps);
+        log('Processing data file', fileName);
 
-        foundMDFiles = checkForMarkdown(data[filePath + fileName]);
+        jsonData = xtend(JSON.parse(read.sync(file, 'utf8')), extraProps);
+
+        data[filePath + fileName] = jsonData;
+
+        foundMDFiles = checkForMarkdown(jsonData);
         log('JSON MDfiles:', foundMDFiles);
       }
     }
@@ -109,7 +114,7 @@ copy.getData = function (opts) {
         filePath = path.dirname(file);
         filePath = filePath.substring(filePath.indexOf(basePath) + basePath.length, filePath.length);
         var md = markdown(opts, file);
-        data[filePath + fileName] = xtend(data[fileName] || {}, {content: md});
+        data[filePath + fileName] = xtend(data[filePath + fileName] || {}, {content: md});
       }
     } else {
       log('No Markdown files found.');
@@ -151,7 +156,7 @@ copy.templates = function (opts, data) {
         // Get files
         var template = read.sync(file, 'utf8');
         // Build
-        var indexFile = Mustache.render(template, data[filePath + fileName]);
+        var indexFile = Mustache.render(template, xtend(data[filePath + fileName], {'_global': data['global']}));
         if (fileName === 'index') {
           destPath = opts.appRoot + '/' + opts.dest + filePath + '/' + fileName + '.html';
         } else {

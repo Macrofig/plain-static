@@ -3,9 +3,15 @@
   <head>
     <meta charset="utf-8">
     <link href='index.css' rel="stylesheet" type="text/css">
-    <title>{{title}}</title>
+    <title>{{_global.title}}</title>
   </head>
   <body>
+      {{_global.hasGlobal}}
+    <ul>
+        {{#_global.nav}}
+        <li>{{label}}</li>
+        {{/_global.nav}}
+    </ul>
     {{{content}}}
     Built on: {{formatDate}}
     <footer>{{{footer.content}}}</footer>
