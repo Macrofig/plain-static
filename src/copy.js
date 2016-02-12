@@ -156,7 +156,7 @@ copy.templates = function (opts, data) {
         // Get files
         var template = read.sync(file, 'utf8');
         // Build
-        var indexFile = Mustache.render(template, xtend(data[filePath + fileName], {'_global': data['global']}));
+        var indexFile = Mustache.render(template, xtend(data[filePath + fileName], {_global: data.global || {}}));
         if (fileName === 'index') {
           destPath = opts.appRoot + '/' + opts.dest + filePath + '/' + fileName + '.html';
         } else {
