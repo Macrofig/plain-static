@@ -81,8 +81,8 @@ copy.getData = function (opts) {
         } catch (e) {
           log('JSON Parse error, verify your JSON files.', e);
           rej({
-              message: 'JSON Parse error, verify your JSON files.',
-              error: e
+            message: 'JSON Parse error, verify your JSON files.',
+            error: e
           });
         }
 
