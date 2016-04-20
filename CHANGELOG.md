@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1] - 2016-04-19
+
+### Changed
+
+- Now using config options in Watch script.
+- Improved error handling of JSON parsing.
+
 ## [1.5.0] - 2016-02-11
 
 ### Added

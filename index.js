@@ -12,7 +12,9 @@ module.exports = function (opts) {
     if (watchCB) {
       watch(watchCB);
     }
-
+    def.catch(function (err) {
+      console.error(err.message, err.error);
+    });
     return def;
   };
 };

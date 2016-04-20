@@ -56,7 +56,7 @@ copy.getData = function (opts) {
     return hasMD;
   };
 
-  return new Promise(function (res) {
+  return new Promise(function (res, rej) {
     // Get JSON
     var jsonFiles = glob.sync(searchPath + '/*.json');
     var i;
@@ -65,6 +65,7 @@ copy.getData = function (opts) {
     var filePath;
     var foundMDFiles;
     var jsonData;
+    var parsedJson;
 
     if (jsonFiles && jsonFiles.length) {
       log('total json files found:', jsonFiles.length);
@@ -75,8 +76,17 @@ copy.getData = function (opts) {
         filePath = filePath.substring(filePath.indexOf(searchPath) + searchPath.length, filePath.length);
 
         log('Processing data file', fileName);
+        try {
+          parsedJson = JSON.parse(read.sync(file, 'utf8'));
+        } catch (e) {
+          log('JSON Parse error, verify your JSON files.', e);
+          rej({
+              message: 'JSON Parse error, verify your JSON files.',
+              error: e
+          });
+        }
 
-        jsonData = xtend(JSON.parse(read.sync(file, 'utf8')), extraProps);
+        jsonData = xtend(parsedJson, extraProps);
 
         data[filePath + fileName] = jsonData;
 

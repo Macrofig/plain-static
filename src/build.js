@@ -25,6 +25,8 @@ module.exports = function (opts) {
           log('RUH ROH');
           rej();
         });
+      }, function (e) {
+        rej(e);
       });
     });
   });
